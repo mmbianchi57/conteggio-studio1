@@ -200,7 +200,7 @@ details > summary::-webkit-details-marker{display:none}
       <div class="grid">
         <div><label class="lbl" for="sData">Data</label><div class="datenav"><button class="ghost" id="dPrev" aria-label="Giorno precedente">‹</button><input type="date" id="sData"><button class="ghost" id="dNext" aria-label="Giorno successivo">›</button><button class="ghost" id="dToday">Oggi</button></div></div>
         <div><label class="lbl" for="sMed">Medico</label><select id="sMed"></select></div>
-        <div id="sAssBox"><label class="lbl" for="sAss">Assistente</label><select id="sAss"></select></div>
+        <div id="sAssBox"><label class="lbl" for="sAss">Ortottista</label><select id="sAss"></select></div>
       </div>
       <div class="grid">
         <div style="grid-column:span 2"><label class="lbl" for="sPrest">Prestazione <span class="hint">· doppio clic per aggiungere subito</span></label><select id="sPrest" class="plist"></select></div>
@@ -259,10 +259,10 @@ details > summary::-webkit-details-marker{display:none}
     <article class="sheet" id="prospetto"></article>
 
     <details class="panel noprint" id="riepStudio" style="display:block">
-      <summary><h2 style="display:inline">Riepilogo del centro: medici, assistenti e studio</h2></summary>
+      <summary><h2 style="display:inline">Riepilogo del centro: medici, ortottisti e studio</h2></summary>
       <div id="totCentro"></div>
       <div class="tablebox"><table>
-        <thead><tr><th class="l">Medico / assistente</th><th>Prest.</th><th class="hide-s">Incassato</th><th class="hide-s">Bolli</th><th>Compenso</th><th>Al centro</th></tr></thead>
+        <thead><tr><th class="l">Medico / ortottista</th><th>Prest.</th><th class="hide-s">Incassato</th><th class="hide-s">Bolli</th><th>Compenso</th><th>Al centro</th></tr></thead>
         <tbody id="mRows"></tbody>
         <tfoot id="mFoot"></tfoot>
       </table></div>
@@ -272,7 +272,7 @@ details > summary::-webkit-details-marker{display:none}
 
     <div class="panel noprint" id="rangePanel">
       <h2>Totali in un intervallo di tempo</h2>
-      <p class="note">Scegli due date qualsiasi (anche a cavallo di più mesi): trovi i totali di medici, assistenti e studio e il dettaglio per persona.</p>
+      <p class="note">Scegli due date qualsiasi (anche a cavallo di più mesi): trovi i totali di medici, ortottisti e studio e il dettaglio per persona.</p>
       <div class="rgform">
         <div><label class="lbl" for="rDa">Dal</label><input type="date" id="rDa"></div>
         <div><label class="lbl" for="rA">Al</label><input type="date" id="rA"></div>
@@ -303,11 +303,11 @@ details > summary::-webkit-details-marker{display:none}
     </div>
 
     <div class="panel">
-      <h2>Assistenti in oftalmologia</h2>
-      <p class="note">Il personale di studio che affianca i medici. In Seduta puoi indicare quale assistente ha seguito ogni prestazione; nel mese trovi il conteggio per assistente.<br>Con <b>Pagata a ore</b> l'assistente compare anche nell'elenco "Medico": in Seduta scegli lei, inserisci le ore lavorate e le prestazioni che esegue (es. campi visivi, pagati con la % del listino). Dalle ore si scalano i minuti indicati per ogni prestazione.</p>
+      <h2>Ortottisti</h2>
+      <p class="note">Il personale di studio che affianca i medici. In Seduta puoi indicare quale ortottista ha seguito ogni prestazione; nel mese trovi il conteggio per ortottista.<br>Con <b>Pagato/a a ore</b> l'ortottista compare anche nell'elenco "Medico": in Seduta selezioni il suo nome, inserisci le ore lavorate e le prestazioni che esegue (es. campi visivi, pagati con la % del listino). Dalle ore si scalano i minuti indicati per ogni prestazione.</p>
       <div class="set-row ass set-head"><span>Nome</span><span>Telefono</span><span>Email</span><span></span></div>
       <div id="assRows" style="display:flex;flex-direction:column;gap:8px"></div>
-      <div class="actions"><button id="assAdd">Aggiungi assistente</button></div>
+      <div class="actions"><button id="assAdd">Aggiungi ortottista</button></div>
     </div>
 
     <div class="panel">
@@ -825,7 +825,7 @@ const fmtDay=s=>{const d=new Date(s+"T12:00");return d.toLocaleDateString("it-IT
 const assOrari=()=>(S.assistenti||[]).filter(a=>a.oraria);
 const oper=id=>S.medici.find(x=>x.id===id)||assOrari().find(x=>x.id===id)||null;
 const isOrario=id=>assOrari().some(a=>a.id===id);
-const operItems=()=>[...S.medici.map(m=>[m.id,m.nome]),...assOrari().map(a=>[a.id,a.nome+" (assistente)"])];
+const operItems=()=>[...S.medici.map(m=>[m.id,m.nome]),...assOrari().map(a=>[a.id,a.nome+" (ortottista)"])];
 const tit=id=>isOrario(id)?"":"Dott. ";
 const medName=id=>{const m=oper(id);return m?m.nome:"(medico rimosso)"};
 function oreGiorno(id,data){
@@ -892,7 +892,7 @@ function renderSeduta(){
     if(editId===v.id)tr.className="sel";
     tr.innerHTML=`<td class="name l"></td><td class="num">${eur(c.p)}</td><td class="num hide-s">${eur(c.b)}</td><td class="num hide-s">${eur(c.n)}</td><td class="num doc">${eur(c.m)}</td><td class="num stu">${eur(c.s)}</td><td class="rowbtn"><button class="x" aria-label="Modifica" title="Modifica" data-edit="${v.id}">✎</button><button class="x" aria-label="Elimina" title="Elimina" data-del="${v.id}">×</button></td>`;
     const nm=tr.querySelector(".name");nm.textContent=`${v.prestazione} (${v.perc}%)`;
-    if(v.assistente){const sp=document.createElement("span");sp.className="ass-tag";sp.textContent=` · ass. ${assName(v.assistenteId)||v.assistente}`;nm.appendChild(sp)}tb.appendChild(tr);
+    if(v.assistente){const sp=document.createElement("span");sp.className="ass-tag";sp.textContent=` · ort. ${assName(v.assistenteId)||v.assistente}`;nm.appendChild(sp)}tb.appendChild(tr);
     if(editId===v.id)tb.appendChild(editRow(v));
   });
   const T=sum(voci);const g=oreGiorno(med,data);
@@ -912,7 +912,7 @@ function editRow(v){
       <div><label class="lbl" for="eData">Data</label><input type="date" id="eData"></div>
       <div><label class="lbl" for="eMed">Medico</label><select id="eMed"></select></div>
       <div><label class="lbl" for="ePrest">Prestazione</label><select id="ePrest"></select></div>
-      <div><label class="lbl" for="eAss">Assistente</label><select id="eAss"></select></div>
+      <div><label class="lbl" for="eAss">Ortottista</label><select id="eAss"></select></div>
       <div><label class="lbl" for="ePrezzo">Prezzo €</label><input type="number" id="ePrezzo" step="0.01" min="0" inputmode="decimal"></div>
       <div><label class="lbl" for="ePerc">% medico</label><input type="number" id="ePerc" step="1" min="0" max="100" inputmode="numeric"></div>
     </div>
@@ -1035,7 +1035,7 @@ function renderMese(){
       <div><span class="logo sh-logo" role="img" aria-label="VISIO Clinica Oculistica Varese"></span><div class="sh-studio">${esc(S.studio||"")}</div><div class="sh-kind">Prospetto compensi mensile</div></div>
       <div class="sh-per"><div class="lbl">Periodo</div><div class="num">${P.da} – ${P.a}</div></div>
     </div>
-    <div class="sh-who"><div><div class="lbl">${OR.on?"Assistente":"Medico"}</div><div class="sh-name">${tit($("mMed").value)}${esc(nome)}</div></div><div><div class="lbl">Mese</div><div class="sh-name">${P.label}</div></div></div>
+    <div class="sh-who"><div><div class="lbl">${OR.on?"Ortottista":"Medico"}</div><div class="sh-name">${tit($("mMed").value)}${esc(nome)}</div></div><div><div class="lbl">Mese</div><div class="sh-name">${P.label}</div></div></div>
     <div class="sh-total"><span>${OR.on?"Compenso totale del mese":"Importo da fatturare al centro"}</span><span class="num">${eur(TOT)}</span></div>
     ${voci.length?`
     <div class="sh-detail" style="display:flex;flex-direction:column;gap:14px">
@@ -1066,25 +1066,25 @@ function renderMese(){
   let oreTot=0,totMed=0,totAss=0,totAssPrest=0;
   ids.forEach(id=>{const vv=all.filter(v=>v.medicoId===id);const t=sum(vv);const om=oreMese(id);if(om.on){totAssPrest+=t.m;t.m+=om.importo;t.s-=om.importo;oreTot+=om.importo;totAss+=t.m}else totMed+=t.m;const tr=document.createElement("tr");tr.className="click"+(id===$("mMed").value?" sel":"");tr.dataset.id=id;
     tr.innerHTML=`<td class="name l"></td><td class="num">${t.k}</td><td class="num hide-s">${eur(t.p)}</td><td class="num hide-s">${eur(t.b)}</td><td class="num doc">${eur(t.m)}</td><td class="num stu">${eur(t.s)}</td>`;
-    tr.querySelector(".name").textContent=oper(id)?medName(id)+(isOrario(id)?" (assistente)":""):(vv[0]?vv[0].medico+" (rimosso)":"");tb.appendChild(tr)});
+    tr.querySelector(".name").textContent=oper(id)?medName(id)+(isOrario(id)?" (ortottista)":""):(vv[0]?vv[0].medico+" (rimosso)":"");tb.appendChild(tr)});
   const TT=sum(all);TT.m+=oreTot;TT.s-=oreTot;
   const box=(lbl,val,cls,sub)=>`<div class="tc ${cls}"><span class="t">${lbl}</span><span class="v num">${eur(val)}</span>${sub?`<span class="s">${sub}</span>`:""}</div>`;
   const pc=x=>TT.p?Math.max(0,x/TT.p*100):0;
   $("totCentro").innerHTML=TT.k||oreTot?`<div class="tcgrid">
       ${box("Incassato",TT.p,"",`${all.filter(v=>!/\(quota fissa\)$/.test(v.prestazione)).length} prestazioni · bolli ${eur(TT.b)}`)}
       ${box("Ai medici",totMed,"doc",`${Math.round(pc(totMed))}% dell'incassato`)}
-      ${box("Agli assistenti",totAss,"ass",oreTot?`ore ${eur(oreTot)} + prestazioni ${eur(totAssPrest)}`:`${Math.round(pc(totAss))}% dell'incassato`)}
+      ${box("Agli ortottisti",totAss,"ass",oreTot?`ore ${eur(oreTot)} + prestazioni ${eur(totAssPrest)}`:`${Math.round(pc(totAss))}% dell'incassato`)}
       ${box("Allo studio",TT.s,"stu",`${Math.round(pc(TT.s))}% dell'incassato (bolli esclusi)`)}
     </div>
     <div class="tcbar" role="img" aria-label="Ripartizione dell'incassato"><span class="b-doc" style="width:${pc(totMed)}%"></span><span class="b-ass" style="width:${pc(totAss)}%"></span><span class="b-stu" style="width:${pc(Math.max(0,TT.s))}%"></span><span class="b-bol" style="width:${pc(TT.b)}%"></span></div>
-    <div class="tcleg"><span><i class="b-doc"></i>Medici ${Math.round(pc(totMed))}%</span><span><i class="b-ass"></i>Assistenti ${Math.round(pc(totAss))}%</span><span><i class="b-stu"></i>Studio ${Math.round(pc(Math.max(0,TT.s)))}%</span><span><i class="b-bol"></i>Bolli ${Math.round(pc(TT.b))}%</span></div>`:"";
+    <div class="tcleg"><span><i class="b-doc"></i>Medici ${Math.round(pc(totMed))}%</span><span><i class="b-ass"></i>Ortottisti ${Math.round(pc(totAss))}%</span><span><i class="b-stu"></i>Studio ${Math.round(pc(Math.max(0,TT.s)))}%</span><span><i class="b-bol"></i>Bolli ${Math.round(pc(TT.b))}%</span></div>`:"";
   const conAss=all.filter(v=>v.assistenteId);
   if(!conAss.length&&!(S.assistenti||[]).length)$("assMese").innerHTML="";
   else{const aids=[...new Set([...(S.assistenti||[]).map(a=>a.id),...conAss.map(v=>v.assistenteId)])];
     const rr=aids.map(id=>{const vv=conAss.filter(v=>v.assistenteId===id);const nm=assName(id)||((vv[0]||{}).assistente||"")+" (rimosso)";
       const per={};vv.forEach(v=>{per[v.medico]=(per[v.medico]||0)+1});
       return`<tr><td class="l">${esc(nm)}</td><td class="num">${vv.length}</td><td class="l hide-s">${esc(Object.entries(per).map(([m,n])=>m+" "+n).join(" · "))}</td></tr>`}).join("");
-    $("assMese").innerHTML=`<h3 style="margin-top:14px">Assistenti in oftalmologia</h3><div class="tablebox"><table><thead><tr><th class="l">Assistente</th><th>Prest.</th><th class="l hide-s">Con quale medico</th></tr></thead><tbody>${rr}</tbody><tfoot><tr><td class="l">Senza assistente</td><td class="num">${all.filter(v=>!v.assistenteId&&!isOrario(v.medicoId)&&!/\(quota fissa\)$/.test(v.prestazione)).length}</td><td class="hide-s"></td></tr></tfoot></table></div>`}
+    $("assMese").innerHTML=`<h3 style="margin-top:14px">Ortottisti</h3><div class="tablebox"><table><thead><tr><th class="l">Ortottista</th><th>Prest.</th><th class="l hide-s">Con quale medico</th></tr></thead><tbody>${rr}</tbody><tfoot><tr><td class="l">Senza ortottista</td><td class="num">${all.filter(v=>!v.assistenteId&&!isOrario(v.medicoId)&&!/\(quota fissa\)$/.test(v.prestazione)).length}</td><td class="hide-s"></td></tr></tfoot></table></div>`}
   $("mFoot").innerHTML=`<tr><td class="l">Totale</td><td class="num">${TT.k}</td><td class="num hide-s">${eur(TT.p)}</td><td class="num hide-s">${eur(TT.b)}</td><td class="num doc">${eur(TT.m)}</td><td class="num stu">${eur(TT.s)}</td></tr>`;
 }
 /* ---------- totali in un intervallo ---------- */
@@ -1102,7 +1102,7 @@ function calcRange(){
   ids.forEach(id=>{const vv=all.filter(v=>v.medicoId===id);const t=sum(vv);const o=oreRange(id,da,a);
     t.n=vv.filter(v=>!/\(quota fissa\)$/.test(v.prestazione)).length;
     if(o.on){assPrest+=t.m;t.ore=o;t.m+=o.importo;t.s-=o.importo;oreTot+=o.importo;totAss+=t.m}else totMed+=t.m;
-    t.nome=oper(id)?medName(id)+(isOrario(id)?" (assistente)":""):(vv[0]?vv[0].medico+" (rimosso)":"");
+    t.nome=oper(id)?medName(id)+(isOrario(id)?" (ortottista)":""):(vv[0]?vv[0].medico+" (rimosso)":"");
     if(t.k||t.m)righe.push(t)});
   const TT=sum(all);TT.m+=oreTot;TT.s-=oreTot;TT.n=all.filter(v=>!/\(quota fissa\)$/.test(v.prestazione)).length;
   return{da,a,righe,TT,totMed,totAss,oreTot,assPrest};
@@ -1119,13 +1119,13 @@ function renderRange(){
     <div class="tcgrid">
       ${box("Incassato",TT.p,"",`${TT.n} prestazioni · bolli ${eur(TT.b)}`)}
       ${box("Ai medici",totMed,"doc",`${Math.round(pc(totMed))}% dell'incassato`)}
-      ${box("Agli assistenti",totAss,"ass",oreTot?`ore ${eur(oreTot)} + prestazioni ${eur(assPrest)}`:`${Math.round(pc(totAss))}% dell'incassato`)}
+      ${box("Agli ortottisti",totAss,"ass",oreTot?`ore ${eur(oreTot)} + prestazioni ${eur(assPrest)}`:`${Math.round(pc(totAss))}% dell'incassato`)}
       ${box("Allo studio",TT.s,"stu",`${Math.round(pc(TT.s))}% dell'incassato (bolli esclusi)`)}
     </div>
     <div class="tcbar" role="img" aria-label="Ripartizione dell'incassato"><span class="b-doc" style="width:${pc(totMed)}%"></span><span class="b-ass" style="width:${pc(totAss)}%"></span><span class="b-stu" style="width:${pc(Math.max(0,TT.s))}%"></span><span class="b-bol" style="width:${pc(TT.b)}%"></span></div>
-    <div class="tcleg"><span><i class="b-doc"></i>Medici ${Math.round(pc(totMed))}%</span><span><i class="b-ass"></i>Assistenti ${Math.round(pc(totAss))}%</span><span><i class="b-stu"></i>Studio ${Math.round(pc(Math.max(0,TT.s)))}%</span><span><i class="b-bol"></i>Bolli ${Math.round(pc(TT.b))}%</span></div>
+    <div class="tcleg"><span><i class="b-doc"></i>Medici ${Math.round(pc(totMed))}%</span><span><i class="b-ass"></i>Ortottisti ${Math.round(pc(totAss))}%</span><span><i class="b-stu"></i>Studio ${Math.round(pc(Math.max(0,TT.s)))}%</span><span><i class="b-bol"></i>Bolli ${Math.round(pc(TT.b))}%</span></div>
     <div class="tablebox"><table>
-      <thead><tr><th class="l">Medico / assistente</th><th>Prest.</th><th class="hide-s">Incassato</th><th class="hide-s">Bolli</th><th>Compenso</th><th>Al centro</th></tr></thead>
+      <thead><tr><th class="l">Medico / ortottista</th><th>Prest.</th><th class="hide-s">Incassato</th><th class="hide-s">Bolli</th><th>Compenso</th><th>Al centro</th></tr></thead>
       <tbody>${R.righe.map(t=>`<tr><td class="l"><b>${esc(t.nome)}</b>${t.ore&&t.ore.ore?`<div class="note" style="margin:0">ore ${hh(t.ore.ore)}, pagate ${hh(t.ore.pag)} = ${eur(t.ore.importo)}</div>`:""}</td><td class="num">${t.n}</td><td class="num hide-s">${eur(t.p)}</td><td class="num hide-s">${eur(t.b)}</td><td class="num doc">${eur(t.m)}</td><td class="num stu">${eur(t.s)}</td></tr>`).join("")}</tbody>
       <tfoot><tr><td class="l">Totale</td><td class="num">${TT.n}</td><td class="num hide-s">${eur(TT.p)}</td><td class="num hide-s">${eur(TT.b)}</td><td class="num doc">${eur(TT.m)}</td><td class="num stu">${eur(TT.s)}</td></tr></tfoot>
     </table></div>`;
@@ -1144,10 +1144,10 @@ document.querySelectorAll("[data-rg]").forEach(b=>b.addEventListener("click",()=
 $("rgCsv").addEventListener("click",()=>{
   const R=calcRange();if(!R||(!R.TT.k&&!R.oreTot)){toast("Nessun dato nell'intervallo");return}
   const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
-  let csv=`${q(S.studio||"")}\nTotali dal ${fmtDate(R.da)} al ${fmtDate(R.a)}\n\nMedico / assistente;Prestazioni;Incassato;Bolli;Compenso;Al centro;Ore lavorate;Ore pagate;Compenso ore\n`;
+  let csv=`${q(S.studio||"")}\nTotali dal ${fmtDate(R.da)} al ${fmtDate(R.a)}\n\nMedico / ortottista;Prestazioni;Incassato;Bolli;Compenso;Al centro;Ore lavorate;Ore pagate;Compenso ore\n`;
   R.righe.forEach(t=>csv+=[q(t.nome),t.n,eurPlain(t.p),eurPlain(t.b),eurPlain(t.m),eurPlain(t.s),t.ore?String(t.ore.ore).replace(".",","):"",t.ore?String(Math.round(t.ore.pag*100)/100).replace(".",","):"",t.ore?eurPlain(t.ore.importo):""].join(";")+"\n");
   csv+=[q("TOTALE"),R.TT.n,eurPlain(R.TT.p),eurPlain(R.TT.b),eurPlain(R.TT.m),eurPlain(R.TT.s)].join(";")+"\n\n";
-  csv+=`Ai medici;;${eurPlain(R.totMed)}\nAgli assistenti;;${eurPlain(R.totAss)}\nAllo studio;;${eurPlain(R.TT.s)}\n`;
+  csv+=`Ai medici;;${eurPlain(R.totMed)}\nAgli ortottisti;;${eurPlain(R.totAss)}\nAllo studio;;${eurPlain(R.TT.s)}\n`;
   download(`Totali_${R.da}_${R.a}.csv`,"\ufeff"+csv,"text/csv;charset=utf-8");
 });
 $("mMese").addEventListener("change",renderMese);$("mAnno").addEventListener("change",renderMese);$("mMed").addEventListener("change",renderMese);
@@ -1204,7 +1204,7 @@ function buildPdf(full){
   if(S.studio){txt(S.studio,L,y+4,{s:10,b:true});y+=5}
   txt(full?"Prospetto compensi mensile":"Riepilogo prestazioni mensile",L,y+6,{s:15,b:true});y+=10;
   doc.setDrawColor(...ink);doc.setLineWidth(.6);doc.line(L,y,R,y);y+=7;
-  txt(OR.on?"ASSISTENTE":"MEDICO",L,y,{s:7,c:grey});txt("MESE",L+80,y,{s:7,c:grey});y+=5;
+  txt(OR.on?"ORTOTTISTA":"MEDICO",L,y,{s:7,c:grey});txt("MESE",L+80,y,{s:7,c:grey});y+=5;
   txt(tit($("mMed").value)+nome,L,y,{s:12,b:true});txt(P.label,L+80,y,{s:12,b:true});y+=7;
   doc.setFillColor(229,238,249);doc.roundedRect(L,y,W,13,2,2,"F");
   txt(OR.on?"Compenso totale del mese":"Importo da fatturare al centro",L+4,y+8.3,{s:10,b:true,c:[29,95,168]});txt(pe(T.m+OR.importo),R-4,y+8.6,{s:15,b:true,c:[29,95,168],a:"right"});y+=21;
@@ -1312,16 +1312,16 @@ function renderImpost(){
       S.medici.splice(i,1);save();renderImpost();fillSedutaSelects();toast("Medico rimosso (le sue prestazioni restano nei resoconti)")});
     mb.appendChild(r)});
   const ab=$("assRows");ab.innerHTML="";
-  if(!S.assistenti.length)ab.innerHTML='<p class="note">Nessun assistente inserito.</p>';
+  if(!S.assistenti.length)ab.innerHTML='<p class="note">Nessun ortottista inserito.</p>';
   S.assistenti.forEach((a,i)=>{const r=document.createElement("div");r.className="set-row ass";
-    r.innerHTML=`<input aria-label="Nome assistente" placeholder="Nome e cognome"><input type="tel" aria-label="Telefono assistente" placeholder="Telefono"><input class="ass-mail" type="email" aria-label="Email assistente" placeholder="email@esempio.it"><button class="x" aria-label="Rimuovi assistente">×</button>`;
+    r.innerHTML=`<input aria-label="Nome ortottista" placeholder="Nome e cognome"><input type="tel" aria-label="Telefono ortottista" placeholder="Telefono"><input class="ass-mail" type="email" aria-label="Email ortottista" placeholder="email@esempio.it"><button class="x" aria-label="Rimuovi ortottista">×</button>`;
     const[inp,tel,em,x]=r.children;inp.value=a.nome;tel.value=a.tel||"";em.value=a.email||"";
     inp.addEventListener("change",()=>{a.nome=inp.value.trim()||a.nome;inp.value=a.nome;S.voci.forEach(v=>{if(v.assistenteId===a.id)v.assistente=a.nome});save();fillSedutaSelects()});
     tel.addEventListener("change",()=>{a.tel=tel.value.trim();save()});
     em.addEventListener("change",()=>{a.email=em.value.trim();save()});
-    x.addEventListener("click",()=>{S.assistenti.splice(i,1);if(S.ultimoAssistente===a.id)S.ultimoAssistente="";save();renderImpost();fillSedutaSelects();toast("Assistente rimosso (le prestazioni già registrate mantengono il nome)")});
+    x.addEventListener("click",()=>{S.assistenti.splice(i,1);if(S.ultimoAssistente===a.id)S.ultimoAssistente="";save();renderImpost();fillSedutaSelects();toast("Ortottista rimosso/a (le prestazioni già registrate mantengono il nome)")});
     const sub=document.createElement("div");sub.className="set-sub";
-    sub.innerHTML=`<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" style="width:auto;min-height:0"> Pagata a ore</label><span>€</span><input type="number" step="0.5" min="0" inputmode="decimal" aria-label="Tariffa oraria" style="max-width:80px"><span>netti l'ora · scala</span><input type="number" step="5" min="0" inputmode="numeric" aria-label="Minuti scalati" style="max-width:70px"><span>min per ogni prestazione che esegue</span>`;
+    sub.innerHTML=`<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" style="width:auto;min-height:0"> Pagato/a a ore</label><span>€</span><input type="number" step="0.5" min="0" inputmode="decimal" aria-label="Tariffa oraria" style="max-width:80px"><span>netti l'ora · scala</span><input type="number" step="5" min="0" inputmode="numeric" aria-label="Minuti scalati" style="max-width:70px"><span>min per ogni prestazione che esegue</span>`;
     const[cb]=sub.querySelectorAll('input[type="checkbox"]'),[tf,mf]=sub.querySelectorAll('input[type="number"]');
     const sync=()=>{tf.disabled=mf.disabled=!cb.checked};
     cb.checked=!!a.oraria;tf.value=a.oraria?a.oraria.tariffa:30;mf.value=a.oraria?a.oraria.minuti:30;sync();
@@ -1348,7 +1348,7 @@ function renderImpost(){
   $("studioName").value=S.studio||"";
   $("lastBackup").textContent=S.ultimoBackup?`Ultimo backup: ${new Date(S.ultimoBackup).toLocaleString("it-IT")} · ${S.voci.length} prestazioni in archivio`:`Nessun backup salvato finora · ${S.voci.length} prestazioni in archivio`;
 }
-$("assAdd").addEventListener("click",()=>{S.assistenti.push({id:uid(),nome:"Nuovo assistente"});save();renderImpost();fillSedutaSelects();const ins=$("assRows").querySelectorAll('input[aria-label="Nome assistente"]');ins[ins.length-1].select()});
+$("assAdd").addEventListener("click",()=>{S.assistenti.push({id:uid(),nome:"Nuovo ortottista"});save();renderImpost();fillSedutaSelects();const ins=$("assRows").querySelectorAll('input[aria-label="Nome ortottista"]');ins[ins.length-1].select()});
 $("medAdd").addEventListener("click",()=>{S.medici.push({id:uid(),nome:"Nuovo medico"});save();renderImpost();fillSedutaSelects();const ins=$("medRows").querySelectorAll("input");ins[ins.length-1].select()});
 $("setAdd").addEventListener("click",()=>{S.listino.push({id:uid(),nome:"Nuova prestazione",prezzo:0,perc:50});save();renderImpost();fillSedutaSelects()});
 $("studioName").addEventListener("change",()=>{S.studio=$("studioName").value.trim();save()});
