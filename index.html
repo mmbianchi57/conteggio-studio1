@@ -8,12 +8,13 @@
 <style>
 /* Layout: colonna unica con schede (Seduta / Resoconto / Impostazioni); totali medico/studio sempre in evidenza */
 :root{
-  --bg:#AFB3A2; --surface:#BFC2B3; --ink:#121510; --muted:#30362B; --line:#959A87;
-  --accent:#2E4A2D; --accent-ink:#F3F4EC; --accent-soft:#A6AF98;
-  --logo:#2E4A2D; --doc:#1C3A54; --doc-soft:#ACB6B3; --studio:#4C3810; --studio-soft:#C3BB9F; --danger:#7E2219; --danger-soft:#C7AC9F;
+  /* Tema verde: #0F1F17 #1E3A2E #3E5A3F #6B7F67 #C7CBB8 #3D4337 */
+  --bg:#0F1F17; --surface:#1E3A2E; --ink:#E4E7D9; --muted:#A3AE9C; --line:#3D4337;
+  --accent:#C7CBB8; --accent-ink:#0F1F17; --accent-soft:#3E5A3F;
+  --logo:#C7CBB8; --doc:#9CC6DE; --doc-soft:#1B3340; --studio:#E2C27A; --studio-soft:#3A3320; --danger:#E39A82; --danger-soft:#3E2A24;
   --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  color-scheme:light;
+  color-scheme:dark;
 }
 @media not all{:root:not([data-theme="light"]){
   --bg:#0f181b; --surface:#16232a; --ink:#e4eef0; --muted:#93a9b0; --line:#2a3b40;
@@ -27,6 +28,17 @@
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+/* effetto luce ai lati (come la palette di riferimento) */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:
+  radial-gradient(ellipse 26vw 7vh at 0% 30%,rgba(236,248,140,.70),rgba(200,220,120,.18) 45%,transparent 75%),
+  radial-gradient(ellipse 26vw 7vh at 100% 30%,rgba(236,248,140,.70),rgba(200,220,120,.18) 45%,transparent 75%),
+  radial-gradient(ellipse 20vw 5vh at 0% 72%,rgba(236,248,140,.55),rgba(200,220,120,.14) 45%,transparent 75%),
+  radial-gradient(ellipse 20vw 5vh at 100% 72%,rgba(236,248,140,.55),rgba(200,220,120,.14) 45%,transparent 75%),
+  radial-gradient(ellipse 40vw 45vh at 0% 50%,rgba(107,127,103,.45),transparent 70%),
+  radial-gradient(ellipse 40vw 45vh at 100% 50%,rgba(107,127,103,.45),transparent 70%),
+  radial-gradient(ellipse 70vw 22vh at 50% 0%,rgba(107,127,103,.35),transparent 75%)}
+.wrap{position:relative;z-index:1}
+@media print{body::before{display:none}}
 .wrap{max-width:960px;margin:0 auto;padding:18px 16px 56px;display:flex;flex-direction:column;gap:16px}
 header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
 h1{font-size:1.5rem;margin:0;letter-spacing:-.01em}
@@ -45,16 +57,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .tabs button{border:none;background:transparent;min-height:38px;padding:6px 14px;color:var(--muted)}
 .tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
-.panel,.tabs,.sheet{border-color:#8E937F #D2D5C6 #D2D5C6 #8E937F;box-shadow:inset 3px 3px 7px rgba(20,24,16,.32),inset -3px -3px 7px rgba(255,255,250,.38)}
+.panel,.tabs,.sheet{border-color:#0B1610 #3E5A3F #3E5A3F #0B1610;box-shadow:inset 3px 3px 7px rgba(0,0,0,.35),inset -2px -2px 6px rgba(199,203,184,.06)}
 .panel,.sheet{border-width:2px}
 .sheet{border-style:solid}
 /* tasti in rilievo */
-button:not(.x):not(:disabled){background-image:linear-gradient(180deg,rgba(255,255,250,.30),rgba(0,0,0,.06));border-color:#D6D9CB #7F846F #7F846F #D6D9CB;box-shadow:2px 2px 4px rgba(20,24,16,.35),-1px -1px 2px rgba(255,255,250,.45);transition:box-shadow .08s,transform .08s}
-button.primary:not(:disabled){background-image:linear-gradient(180deg,rgba(255,255,255,.16),rgba(0,0,0,.14));border-color:#4E6A4C #1C2F1B #1C2F1B #4E6A4C}
-button:not(.x):not(:disabled):hover{box-shadow:3px 3px 6px rgba(20,24,16,.38),-1px -1px 2px rgba(255,255,250,.5)}
+button:not(.x):not(:disabled){background-image:linear-gradient(180deg,rgba(255,255,250,.30),rgba(0,0,0,.06));background-color:#3E5A3F;border-color:#6B7F67 #16291F #16291F #6B7F67;box-shadow:2px 2px 4px rgba(0,0,0,.45),-1px -1px 2px rgba(199,203,184,.08);transition:box-shadow .08s,transform .08s}
+button.primary:not(:disabled){background-image:linear-gradient(180deg,rgba(255,255,255,.16),rgba(0,0,0,.14));border-color:#E4E7D9 #8E937F #8E937F #E4E7D9}
+button:not(.x):not(:disabled):hover{box-shadow:3px 3px 6px rgba(0,0,0,.5),-1px -1px 2px rgba(199,203,184,.12)}
 button:not(.x):not(:disabled):active,.tabs button[aria-selected="true"]{transform:translateY(1px);box-shadow:inset 2px 2px 4px rgba(0,0,0,.35),inset -1px -1px 2px rgba(255,255,255,.15)}
 .tabs button:not([aria-selected="true"]){background-color:var(--surface)}
 button.ghost:not(:disabled){background-color:var(--surface)}
+button.primary:not(:disabled),.tabs button[aria-selected="true"]{background-color:var(--accent);color:var(--accent-ink)}
 /* tasto che si accende di rosso quando lo premi */
 @keyframes lucerossa{
   0%{box-shadow:inset 0 0 8px rgba(214,110,96,.75),0 0 3px 1px rgba(200,90,76,.6),0 0 12px 3px rgba(190,80,66,.32);border-color:#c97a6c;color:#fff;background-color:#a8574b;text-shadow:0 0 4px rgba(255,225,215,.6)}
