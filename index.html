@@ -116,6 +116,7 @@ tr.sel td{background:var(--accent-soft)}
 .rgform>div:not(.rgquick){width:170px;max-width:100%}
 .rgquick{display:flex;flex-wrap:wrap;gap:6px}
 .rgquick button{min-height:38px;padding:6px 10px;font-size:.85rem}
+.quota-tag{font-size:.8rem;font-weight:600;color:var(--accent);margin-top:2px}
 .ass-tag{color:var(--muted);font-size:.85em}
 .set-sub{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:.82rem;color:var(--muted);margin:-4px 0 6px 4px}
 .set-sub select,.set-sub input{width:auto;min-height:34px;padding:4px 8px}
@@ -825,15 +826,17 @@ function migra(){
     if(!S.listino.some(p=>/campo visivo|campi visivi/i.test(p.nome)))S.listino.push({id:uid(),nome:"Campo visivo",prezzo:102,perc:50});
     S.migrNic=1;
   }
-  if(S.migrPed3&&!S.migrPed4){
-    const vp=S.listino.find(p=>/pediatric/i.test(p.nome)&&!/controllo/i.test(p.nome));
-    if(vp&&vp.quota&&Number(vp.quota.importo)===25)vp.quota.importo=30;
-    S.migrPed4=1;
-  }
-  if(S.migrPed3)return;
+  // sempre: ogni visita pediatrica del listino ha la quota fissa a Nozzetti
   let nz=S.medici.find(m=>/nozzetti/i.test(m.nome));
   if(!nz){nz={id:uid(),nome:"Nozzetti"};S.medici.push(nz)}
   const isPed=p=>/pediatric/i.test(p.nome),isCtrl=p=>/controllo/i.test(p.nome);
+  S.listino.filter(isPed).forEach(p=>{
+    const ok=p.quota&&S.medici.some(m=>m.id===p.quota.medicoId)&&Number(p.quota.importo)>0;
+    if(!ok)p.quota={medicoId:nz.id,importo:isCtrl(p)?20:30};
+    else if(!isCtrl(p)&&!S.migrPed4&&Number(p.quota.importo)===25)p.quota.importo=30;
+  });
+  S.migrPed4=1;
+  if(S.migrPed3)return;
   let comp=S.listino.find(p=>isPed(p)&&!isCtrl(p)),ctrl=S.listino.find(p=>isPed(p)&&isCtrl(p));
   if(!comp){comp={id:uid(),nome:"Visita pediatrica"};S.listino.push(comp)}
   if(!ctrl){ctrl={id:uid(),nome:"Visita pediatrica di controllo"};S.listino.push(ctrl)}
@@ -921,7 +924,11 @@ function renderSeduta(){
     if(editId===v.id)tr.className="sel";
     tr.innerHTML=`<td class="name l"></td><td class="num">${eur(c.p)}</td><td class="num hide-s">${eur(c.b)}</td><td class="num hide-s">${eur(c.n)}</td><td class="num doc">${eur(c.m)}</td><td class="num stu">${eur(c.s)}</td><td class="rowbtn"><button class="x" aria-label="Modifica" title="Modifica" data-edit="${v.id}">✎</button><button class="x" aria-label="Elimina" title="Elimina" data-del="${v.id}">×</button></td>`;
     const nm=tr.querySelector(".name");nm.textContent=`${v.prestazione} (${v.perc}%)`;
-    if(v.assistente){const sp=document.createElement("span");sp.className="ass-tag";sp.textContent=` · ort. ${assName(v.assistenteId)||v.assistente}`;nm.appendChild(sp)}tb.appendChild(tr);
+    if(v.assistente){const sp=document.createElement("span");sp.className="ass-tag";sp.textContent=` · ort. ${assName(v.assistenteId)||v.assistente}`;nm.appendChild(sp)}
+    const qv=v.gruppo&&S.voci.find(x=>x.gruppo===v.gruppo&&x.id!==v.id);
+    if(qv){const d=document.createElement("div");d.className="quota-tag";
+      d.textContent=/\(quota fissa\)$/.test(v.prestazione)?`↳ collegata alla visita di ${qv.medico}`:`↳ + ${eur(cents(qv.prezzo))} a ${medName(qv.medicoId)} (quota fissa, senza trattenute)`;nm.appendChild(d)}
+    tb.appendChild(tr);
     if(editId===v.id)tb.appendChild(editRow(v));
   });
   const T=sum(voci);const g=oreGiorno(med,data);
