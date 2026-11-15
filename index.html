@@ -55,7 +55,15 @@ button:not(.x):not(:disabled):hover{box-shadow:3px 3px 6px rgba(20,24,16,.38),-1
 button:not(.x):not(:disabled):active,.tabs button[aria-selected="true"]{transform:translateY(1px);box-shadow:inset 2px 2px 4px rgba(0,0,0,.35),inset -1px -1px 2px rgba(255,255,255,.15)}
 .tabs button:not([aria-selected="true"]){background-color:var(--surface)}
 button.ghost:not(:disabled){background-color:var(--surface)}
-@media print{.panel,.tabs,.sheet{box-shadow:none!important;border:0!important}button{box-shadow:none!important}}
+/* tasto che si accende di rosso quando lo premi */
+@keyframes lucerossa{
+  0%{box-shadow:inset 0 0 10px rgba(255,60,40,.95),0 0 4px 2px rgba(255,40,20,.9),0 0 18px 6px rgba(255,30,10,.55);border-color:#ff5a3c;color:#fff;background-color:#c8281a;text-shadow:0 0 6px rgba(255,220,200,.9)}
+  35%{box-shadow:inset 0 0 8px rgba(255,60,40,.8),0 0 3px 1px rgba(255,40,20,.75),0 0 14px 4px rgba(255,30,10,.4);border-color:#ff5a3c;color:#fff;background-color:#b8261a}
+  100%{}
+}
+button.lit{animation:lucerossa .75s ease-out;background-image:none!important}
+@media (prefers-reduced-motion:reduce){button.lit{animation-duration:.3s}}
+@media print{.panel,.tabs,.sheet{box-shadow:none!important;border:0!important}button{box-shadow:none!important;animation:none!important}}
 .grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));align-items:end}
 .grid > *{min-width:0}
 .meta{color:var(--muted);font-size:.85rem}
@@ -1532,6 +1540,12 @@ async function initBackupDir(){
   renderBkStatus();
 }
 window.addEventListener("pagehide",()=>{if(bkTimer){clearTimeout(bkTimer);writeBackupNow()}});
+
+/* ---------- luce rossa sui tasti ---------- */
+function accendi(b){if(!b||b.disabled)return;b.classList.remove("lit");void b.offsetWidth;b.classList.add("lit")}
+document.addEventListener("pointerdown",e=>{const b=e.target.closest&&e.target.closest("button");if(b)accendi(b)},true);
+document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.tagName==="BUTTON")accendi(e.target)},true);
+document.addEventListener("animationend",e=>{if(e.animationName==="lucerossa")e.target.classList.remove("lit")},true);
 
 /* ---------- avvio ---------- */
 $("sData").value=today();
