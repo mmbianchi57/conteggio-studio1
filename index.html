@@ -357,6 +357,11 @@ details > summary::-webkit-details-marker{display:none}
     </div>
 
     <div class="panel">
+      <h2>Suono dei tasti</h2>
+      <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" id="clickOn" style="width:auto;min-height:0"> Fai un "click" quando premo un pulsante</label>
+    </div>
+
+    <div class="panel">
       <h2>Cartella dei backup automatici</h2>
       <p class="note">Scegli una cartella (per esempio "Backup Conteggio VISIO" nei Documenti o in una cartella di OneDrive/Google Drive). Ad ogni modifica il programma salva lì da solo una copia del giorno (<b>Backup_conteggio_AAAA-MM-GG.json</b>) e tiene gli ultimi 60 giorni. Per ripristinare usa "Carica backup" e scegli il file della data che ti serve.</p>
       <div class="actions">
@@ -1542,10 +1547,30 @@ async function initBackupDir(){
 window.addEventListener("pagehide",()=>{if(bkTimer){clearTimeout(bkTimer);writeBackupNow()}});
 
 /* ---------- luce rossa sui tasti ---------- */
-function accendi(b){if(!b||b.disabled)return;b.classList.remove("lit");void b.offsetWidth;b.classList.add("lit")}
+let actx=null;
+function clickSound(){
+  if(S.suonoOff)return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==="suspended")actx.resume();
+    const t=actx.currentTime,sr=actx.sampleRate,n=Math.floor(sr*.03);
+    const buf=actx.createBuffer(1,n,sr),d=buf.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,6);
+    const src=actx.createBufferSource();src.buffer=buf;
+    const bp=actx.createBiquadFilter();bp.type="bandpass";bp.frequency.value=2600;bp.Q.value=1.4;
+    const g=actx.createGain();g.gain.setValueAtTime(.55,t);g.gain.exponentialRampToValueAtTime(.001,t+.03);
+    src.connect(bp).connect(g).connect(actx.destination);src.start(t);
+    const o=actx.createOscillator(),og=actx.createGain();o.type="sine";o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(90,t+.04);
+    og.gain.setValueAtTime(.18,t);og.gain.exponentialRampToValueAtTime(.001,t+.05);o.connect(og).connect(actx.destination);o.start(t);o.stop(t+.06);
+  }catch(e){}
+}
+function accendi(b){if(!b||b.disabled)return;clickSound();b.classList.remove("lit");void b.offsetWidth;b.classList.add("lit")}
 document.addEventListener("pointerdown",e=>{const b=e.target.closest&&e.target.closest("button");if(b)accendi(b)},true);
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.tagName==="BUTTON")accendi(e.target)},true);
 document.addEventListener("animationend",e=>{if(e.animationName==="lucerossa")e.target.classList.remove("lit")},true);
+
+$("clickOn").checked=!S.suonoOff;
+$("clickOn").addEventListener("change",()=>{S.suonoOff=!$("clickOn").checked;save();if(!S.suonoOff)clickSound()});
 
 /* ---------- avvio ---------- */
 $("sData").value=today();
