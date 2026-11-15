@@ -825,6 +825,11 @@ function migra(){
     if(!S.listino.some(p=>/campo visivo|campi visivi/i.test(p.nome)))S.listino.push({id:uid(),nome:"Campo visivo",prezzo:102,perc:50});
     S.migrNic=1;
   }
+  if(S.migrPed3&&!S.migrPed4){
+    const vp=S.listino.find(p=>/pediatric/i.test(p.nome)&&!/controllo/i.test(p.nome));
+    if(vp&&vp.quota&&Number(vp.quota.importo)===25)vp.quota.importo=30;
+    S.migrPed4=1;
+  }
   if(S.migrPed3)return;
   let nz=S.medici.find(m=>/nozzetti/i.test(m.nome));
   if(!nz){nz={id:uid(),nome:"Nozzetti"};S.medici.push(nz)}
@@ -832,9 +837,9 @@ function migra(){
   let comp=S.listino.find(p=>isPed(p)&&!isCtrl(p)),ctrl=S.listino.find(p=>isPed(p)&&isCtrl(p));
   if(!comp){comp={id:uid(),nome:"Visita pediatrica"};S.listino.push(comp)}
   if(!ctrl){ctrl={id:uid(),nome:"Visita pediatrica di controllo"};S.listino.push(ctrl)}
-  Object.assign(comp,{prezzo:162,perc:70,quota:{medicoId:nz.id,importo:25}});
+  Object.assign(comp,{prezzo:162,perc:70,quota:{medicoId:nz.id,importo:30}});
   Object.assign(ctrl,{prezzo:132,perc:70,quota:{medicoId:nz.id,importo:20}});
-  S.migrPed=S.migrPed2=S.migrPed3=1;
+  S.migrPed=S.migrPed2=S.migrPed3=S.migrPed4=1;
 }
 function quotaDi(p){if(!p||!p.quota||!oper(p.quota.medicoId))return 0;return Math.min(Math.max(0,Number(p.quota.importo)||0),Number(p.prezzo)||0)}
 migra();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
