@@ -1558,10 +1558,10 @@ function clickSound(){
     for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,6);
     const src=actx.createBufferSource();src.buffer=buf;
     const bp=actx.createBiquadFilter();bp.type="bandpass";bp.frequency.value=2600;bp.Q.value=1.4;
-    const g=actx.createGain();g.gain.setValueAtTime(.55,t);g.gain.exponentialRampToValueAtTime(.001,t+.03);
+    const g=actx.createGain();g.gain.setValueAtTime(.8,t);g.gain.exponentialRampToValueAtTime(.001,t+.03);
     src.connect(bp).connect(g).connect(actx.destination);src.start(t);
     const o=actx.createOscillator(),og=actx.createGain();o.type="sine";o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(90,t+.04);
-    og.gain.setValueAtTime(.18,t);og.gain.exponentialRampToValueAtTime(.001,t+.05);o.connect(og).connect(actx.destination);o.start(t);o.stop(t+.06);
+    og.gain.setValueAtTime(.26,t);og.gain.exponentialRampToValueAtTime(.001,t+.05);o.connect(og).connect(actx.destination);o.start(t);o.stop(t+.06);
   }catch(e){}
 }
 function accendi(b){if(!b||b.disabled)return;clickSound();b.classList.remove("lit");void b.offsetWidth;b.classList.add("lit")}
