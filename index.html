@@ -201,6 +201,155 @@ details > summary::-webkit-details-marker{display:none}
 </style>
 </head>
 <body>
+<script>
+/* Blocco con password, comune a Studio VISIO, Agenda visite, Agenda personale e Conteggio.
+   Una password sola; sblocchi una volta e vale per tutti i programmi finché li usi.
+   Dopo 15 minuti senza toccare niente si richiude da solo. */
+(function(){
+  if (window.__visioLock) return; window.__visioLock = true;
+  var KEY="visio-lock-v1", UNTIL="visio-lock-until", IDLE=15*60*1000;
+  var de=document.documentElement;
+  function ls(k,v){ try{ if(v===undefined) return localStorage.getItem(k); if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){ return null; } }
+  function cfg(){ try{ return JSON.parse(ls(KEY)||"null"); }catch(e){ return null; } }
+  function unlockedNow(){ var u=+ls(UNTIL)||0; return !!cfg() && Date.now()<u; }
+  // nasconde subito la pagina se serve, prima che si veda qualcosa
+  if(!unlockedNow()) de.classList.add("vl-locked");
+
+  var css=document.createElement("style");
+  css.textContent=
+  "html.vl-locked body>*:not(#vlBox){visibility:hidden!important}"+
+  "#vlBox{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;padding:20px;background:#0F1F17;color:#E4E7D9;font:15px/1.45 'Segoe UI',system-ui,-apple-system,sans-serif}"+
+  "#vlBox::before{content:'';position:absolute;inset:0;pointer-events:none;background:"+
+   "radial-gradient(ellipse 26vw 7vh at 0% 30%,rgba(236,248,140,.70),rgba(200,220,120,.18) 45%,transparent 75%),"+
+   "radial-gradient(ellipse 26vw 7vh at 100% 30%,rgba(236,248,140,.70),rgba(200,220,120,.18) 45%,transparent 75%),"+
+   "radial-gradient(ellipse 20vw 5vh at 0% 72%,rgba(236,248,140,.55),rgba(200,220,120,.14) 45%,transparent 75%),"+
+   "radial-gradient(ellipse 20vw 5vh at 100% 72%,rgba(236,248,140,.55),rgba(200,220,120,.14) 45%,transparent 75%),"+
+   "radial-gradient(ellipse 40vw 45vh at 0% 50%,rgba(107,127,103,.45),transparent 70%),"+
+   "radial-gradient(ellipse 40vw 45vh at 100% 50%,rgba(107,127,103,.45),transparent 70%)}"+
+  "#vlBox form{position:relative;width:min(100%,400px);background:#1E3A2E;border:2px solid;border-color:#0B1610 #3E5A3F #3E5A3F #0B1610;border-radius:16px;padding:28px 24px;display:grid;gap:14px;text-align:center;box-shadow:inset 3px 3px 7px rgba(0,0,0,.35),0 20px 50px rgba(0,0,0,.45)}"+
+  "#vlBox h2{margin:0;font-size:1.4rem;text-transform:none;letter-spacing:0;color:#E4E7D9}#vlBox .vl-sub{text-transform:none;letter-spacing:0;margin:-6px 0 0;color:#A3AE9C;font-size:.9rem}"+
+  "#vlBox .vl-ic{width:54px;height:54px;margin:0 auto;border-radius:14px;display:grid;place-items:center;background:#132A1C;box-shadow:inset 2px 2px 5px rgba(0,0,0,.45);color:#C7CBB8}"+
+  "#vlBox input{font:inherit;color:inherit;width:100%;min-height:44px;padding:9px 12px;border-radius:10px;background:#132A1C;border:1px solid;border-color:#0B1610 #2F4A38 #2F4A38 #0B1610;box-shadow:inset 2px 2px 4px rgba(0,0,0,.4);text-align:center;letter-spacing:.05em}"+
+  "#vlBox input:focus-visible,#vlBox button:focus-visible{outline:2px solid #C7CBB8;outline-offset:2px}"+
+  "#vlBox .vl-go{font:inherit;font-weight:700;min-height:44px;border-radius:10px;cursor:pointer;background-color:#C7CBB8;color:#0F1F17;border:1px solid;border-color:#E4E7D9 #8E937F #8E937F #E4E7D9;background-image:linear-gradient(180deg,rgba(255,255,255,.16),rgba(0,0,0,.14));box-shadow:2px 2px 4px rgba(0,0,0,.45)}"+
+  "#vlBox .vl-go:active{transform:translateY(1px)}"+
+  "#vlBox .vl-lnk{background:none;border:0;color:#A3AE9C;text-decoration:underline;cursor:pointer;font:inherit;font-size:.85rem;justify-self:center}"+
+  "#vlBox .vl-err{color:#E39A82;font-size:.88rem;min-height:1.2em}"+
+  "#vlBox .vl-code{font-family:Consolas,'IBM Plex Mono',monospace;font-size:1.5rem;letter-spacing:.12em;background:#132A1C;border-radius:10px;padding:12px;box-shadow:inset 2px 2px 5px rgba(0,0,0,.45);user-select:all}"+
+  "#vlBox .vl-note{font-size:.86rem;color:#D3D8C6;text-align:left}"+
+  "#vlBar{position:fixed;right:10px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:2147482000;display:grid;gap:8px}"+
+  "#vlBar button{width:60px;padding:7px 4px 6px;display:grid;justify-items:center;gap:3px;font:700 .58rem/1.1 'Segoe UI',system-ui,sans-serif;text-align:center;border-radius:12px;cursor:pointer;color:#E4E7D9;background-color:#2A3127;background-image:linear-gradient(180deg,rgba(255,255,250,.16),rgba(0,0,0,.10));border:1px solid;border-color:#6B7F67 #16291F #16291F #6B7F67;box-shadow:2px 2px 5px rgba(0,0,0,.5)}"+
+  "#vlBar button svg{width:18px;height:18px}"+
+  "#vlBar button:active{transform:translateY(1px);box-shadow:inset 2px 2px 4px rgba(0,0,0,.4)}"+
+  "@media (max-width:600px){#vlBar{bottom:calc(150px + env(safe-area-inset-bottom,0px));right:8px}#vlBar button{width:48px;font-size:.5rem}}"+
+  "html.vl-locked #vlBar{display:none}"+
+  "@media print{#vlBar,#vlBox{display:none!important}html.vl-locked body>*{visibility:visible!important}}";
+  (document.head||de).appendChild(css);
+
+  var enc=new TextEncoder();
+  function hex(buf){ return Array.prototype.map.call(new Uint8Array(buf),function(x){return x.toString(16).padStart(2,"0");}).join(""); }
+  function fallbackHash(s){ var h1=0x811c9dc5,h2=0x1b873593; for(var i=0;i<s.length;i++){ var c=s.charCodeAt(i); h1=Math.imul(h1^c,16777619); h2=Math.imul(h2^c,2246822519); } var o=""; for(var r=0;r<4000;r++){ h1=Math.imul(h1^(h2>>>13),16777619); h2=Math.imul(h2^(h1>>>11),2246822519); } return (h1>>>0).toString(16)+(h2>>>0).toString(16); }
+  function hash(pw,salt){
+    var s=salt+"|"+pw;
+    if(window.crypto&&crypto.subtle) return crypto.subtle.digest("SHA-256",enc.encode(s)).then(hex).catch(function(){ return "f"+fallbackHash(s); });
+    return Promise.resolve("f"+fallbackHash(s));
+  }
+  function rnd(n,alpha){ var a=alpha||"ABCDEFGHJKLMNPQRSTUVWXYZ23456789",o="",v=new Uint32Array(n); (window.crypto||{}).getRandomValues?crypto.getRandomValues(v):v.forEach(function(_,i){v[i]=Math.random()*4294967296;}); for(var i=0;i<n;i++) o+=a[v[i]%a.length]; return o; }
+  function norm(c){ return String(c||"").toUpperCase().replace(/[^A-Z0-9]/g,""); }
+
+  function touch(){ if(!de.classList.contains("vl-locked")) ls(UNTIL,String(Date.now()+IDLE)); }
+  var last=0; function activity(){ var n=Date.now(); if(n-last>15000){ last=n; touch(); } }
+  ["pointerdown","keydown","wheel","touchstart","mousemove"].forEach(function(e){ addEventListener(e,activity,{passive:true,capture:true}); });
+
+  var box=null;
+  function el(h){ var d=document.createElement("div"); d.innerHTML=h.trim(); return d.firstChild; }
+  var ICON='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>';
+  function show(html,onSubmit){
+    if(box) box.remove();
+    box=el('<div id="vlBox" role="dialog" aria-modal="true" aria-labelledby="vlT"><form autocomplete="off" novalidate>'+html+'</form></div>');
+    document.body.appendChild(box);
+    var f=box.querySelector("form");
+    f.addEventListener("submit",function(e){ e.preventDefault(); onSubmit(f); });
+    var first=f.querySelector("input,button.vl-go"); if(first) setTimeout(function(){ first.focus(); },30);
+    return f;
+  }
+  function err(f,t){ var e=f.querySelector(".vl-err"); if(e) e.textContent=t; }
+  function head(t,sub){ return '<div class="vl-ic">'+ICON+'</div><h2 id="vlT">'+t+'</h2>'+(sub?'<p class="vl-sub">'+sub+'</p>':''); }
+
+  function unlock(){ de.classList.remove("vl-locked"); ls(UNTIL,String(Date.now()+IDLE)); if(box){ box.remove(); box=null; } bar(); }
+  function lock(){ ls(UNTIL,null); de.classList.add("vl-locked"); askPassword(); }
+
+  function setPassword(f,pw1,pw2,done){
+    if(pw1.length<4){ err(f,"Usa almeno 4 caratteri."); return; }
+    if(pw1!==pw2){ err(f,"Le due password non coincidono."); return; }
+    var salt=rnd(16), code=rnd(5)+"-"+rnd(5), csalt=rnd(16);
+    Promise.all([hash(pw1,salt),hash(norm(code),csalt)]).then(function(r){
+      ls(KEY,JSON.stringify({salt:salt,h:r[0],csalt:csalt,ch:r[1],creata:new Date().toISOString()}));
+      showCode(code,done);
+    });
+  }
+  function showCode(code,done){
+    show(head("Codice di recupero","Scrivilo e conservalo in un posto sicuro")+
+      '<div class="vl-code">'+code+'</div>'+
+      '<div class="vl-note">Serve solo se la password viene dimenticata: con questo codice se ne imposta una nuova. Viene mostrato <b>una volta sola</b>.</div>'+
+      '<button class="vl-go" type="submit">L\'ho scritto, continua</button>', function(){ done(); });
+  }
+  function setup(){
+    show(head("Imposta la password","Una sola password per Studio VISIO, le due agende e il Conteggio")+
+      '<input type="password" id="vlP1" placeholder="Nuova password" autocomplete="new-password" aria-label="Nuova password">'+
+      '<input type="password" id="vlP2" placeholder="Ripeti la password" autocomplete="new-password" aria-label="Ripeti la password">'+
+      '<div class="vl-err" role="alert"></div><button class="vl-go" type="submit">Salva password</button>',
+      function(f){ setPassword(f,f.querySelector("#vlP1").value,f.querySelector("#vlP2").value,unlock); });
+  }
+  function askPassword(){
+    var c=cfg(); if(!c){ setup(); return; }
+    var f=show(head("Studio VISIO","Inserisci la password per entrare")+
+      '<input type="password" id="vlP" placeholder="Password" autocomplete="current-password" aria-label="Password">'+
+      '<div class="vl-err" role="alert"></div><button class="vl-go" type="submit">Entra</button>'+
+      '<button class="vl-lnk" type="button" id="vlForgot">Password dimenticata?</button>',
+      function(f){ var p=f.querySelector("#vlP").value; hash(p,c.salt).then(function(h){ if(h===c.h) unlock(); else { err(f,"Password errata."); f.querySelector("#vlP").select(); } }); });
+    f.querySelector("#vlForgot").onclick=recover;
+  }
+  function recover(){
+    var c=cfg();
+    var f=show(head("Password dimenticata","Inserisci il codice di recupero e scegli una nuova password")+
+      '<input id="vlC" placeholder="Codice di recupero (XXXXX-XXXXX)" aria-label="Codice di recupero">'+
+      '<input type="password" id="vlP1" placeholder="Nuova password" autocomplete="new-password" aria-label="Nuova password">'+
+      '<input type="password" id="vlP2" placeholder="Ripeti la password" autocomplete="new-password" aria-label="Ripeti la password">'+
+      '<div class="vl-err" role="alert"></div><button class="vl-go" type="submit">Imposta nuova password</button>'+
+      '<button class="vl-lnk" type="button" id="vlBack">Torna indietro</button>',
+      function(f){ hash(norm(f.querySelector("#vlC").value),c.csalt).then(function(h){ if(h!==c.ch){ err(f,"Codice di recupero non valido."); return; } setPassword(f,f.querySelector("#vlP1").value,f.querySelector("#vlP2").value,unlock); }); });
+    f.querySelector("#vlBack").onclick=askPassword;
+  }
+  function changePassword(){
+    var c=cfg();
+    de.classList.add("vl-locked");
+    var f=show(head("Cambia password")+
+      '<input type="password" id="vlP0" placeholder="Password attuale" autocomplete="current-password" aria-label="Password attuale">'+
+      '<input type="password" id="vlP1" placeholder="Nuova password" autocomplete="new-password" aria-label="Nuova password">'+
+      '<input type="password" id="vlP2" placeholder="Ripeti la nuova password" autocomplete="new-password" aria-label="Ripeti la nuova password">'+
+      '<div class="vl-err" role="alert"></div><button class="vl-go" type="submit">Salva</button>'+
+      '<button class="vl-lnk" type="button" id="vlBack">Annulla</button>',
+      function(f){ hash(f.querySelector("#vlP0").value,c.salt).then(function(h){ if(h!==c.h){ err(f,"La password attuale non è corretta."); return; } setPassword(f,f.querySelector("#vlP1").value,f.querySelector("#vlP2").value,unlock); }); });
+    f.querySelector("#vlBack").onclick=unlock;
+  }
+  function bar(){
+    if(document.getElementById("vlBar")) return;
+    var b=el('<div id="vlBar" aria-label="Sicurezza"><button type="button" id="vlLock" title="Blocca i programmi">'+ICON.replace('width="26" height="26"','width="18" height="18"')+'<span>Blocca</span></button><button type="button" id="vlChg" title="Cambia la password"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M15 8l2 2"/></svg><span>Password</span></button></div>');
+    document.body.appendChild(b);
+    b.querySelector("#vlLock").onclick=lock;
+    b.querySelector("#vlChg").onclick=changePassword;
+  }
+
+  // controllo periodico: si richiude da solo dopo 15 minuti senza attività (vale per tutte le pagine aperte)
+  setInterval(function(){ if(!de.classList.contains("vl-locked") && !unlockedNow()) lock(); },20000);
+  addEventListener("storage",function(e){ if(e.key===UNTIL && !e.newValue && !de.classList.contains("vl-locked")) { de.classList.add("vl-locked"); askPassword(); } });
+
+  function start(){ if(de.classList.contains("vl-locked")) askPassword(); else bar(); }
+  if(document.body) start(); else document.addEventListener("DOMContentLoaded",start);
+})();
+</script>
+
 <style>
 /* tasti laterali per passare agli altri programmi */
 .sidejump{position:fixed;right:10px;top:50%;transform:translateY(-50%);z-index:6;display:grid;gap:10px}
