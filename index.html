@@ -201,6 +201,30 @@ details > summary::-webkit-details-marker{display:none}
 </style>
 </head>
 <body>
+<style>
+/* tasti laterali per passare agli altri programmi */
+.sidejump{position:fixed;right:10px;top:50%;transform:translateY(-50%);z-index:6;display:grid;gap:10px}
+.sidejump .sj{position:relative;width:60px;padding:9px 4px 7px;border-radius:12px;border:1px solid;display:grid;justify-items:center;gap:4px;cursor:pointer;
+  font:700 .6rem/1.1 system-ui,-apple-system,"Segoe UI",sans-serif;text-decoration:none;text-align:center;letter-spacing:.01em;
+  background-image:linear-gradient(180deg,rgba(255,255,250,.22),rgba(0,0,0,.10));box-shadow:2px 2px 5px rgba(0,0,0,.5),-1px -1px 2px rgba(199,203,184,.08);transition:box-shadow .08s,transform .08s}
+.sidejump .sj svg{width:22px;height:22px}
+.sidejump .sj:hover{box-shadow:3px 3px 8px rgba(0,0,0,.6),-1px -1px 2px rgba(199,203,184,.14)}
+.sidejump .sj:active{transform:translateY(1px);box-shadow:inset 2px 2px 4px rgba(0,0,0,.4)}
+.sidejump .sj:focus-visible{outline:2px solid #C7CBB8;outline-offset:2px}
+.sidejump .sj-av{background-color:#C7CBB8;color:#0F1F17;border-color:#E4E7D9 #8E937F #8E937F #E4E7D9}
+.sidejump .sj-ap{background-color:#9A5F2E;color:#FBF1E3;border-color:#C98A52 #4A2A12 #4A2A12 #C98A52}
+.sidejump .sj-cs{background-color:#3E5A3F;color:#E4E7D9;border-color:#6B7F67 #16291F #16291F #6B7F67}
+.sidejump .sj-note{position:absolute;right:70px;top:50%;transform:translateY(-50%);width:220px;background:#1E3A2E;color:#E4E7D9;border:1px solid #6B7F67;border-radius:10px;padding:9px 11px;
+  font:400 .8rem/1.35 system-ui,-apple-system,"Segoe UI",sans-serif;text-align:left;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+@media (max-width:1240px){.wrap{padding-right:80px!important}}
+@media (max-width:600px){.wrap{padding-right:16px!important}.sidejump{right:8px;top:auto;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:none;gap:8px}.sidejump .sj{width:48px;padding:7px 2px 5px;font-size:.52rem}.sidejump .sj svg{width:19px;height:19px}.sidejump .sj-note{top:auto;bottom:0;transform:none;right:58px;width:200px}}
+@media print{.sidejump{display:none!important}}
+</style>
+<nav class="sidejump" aria-label="Altri programmi dello studio">
+<a class="sj sj-av" href="https://claude.ai/artifact/9dVoT9ZemH6daQDnHBGbLX" title="Agenda visite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M7.5 13.5h3M13.5 13.5h3M7.5 17h3"/></svg><span>Agenda visite</span></a>
+<a class="sj sj-ap" href="https://claude.ai/artifact/Koq8m4nFH3bauPFrnjPTyX" title="Agenda personale"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5 2.5-2.5M3.5 18l1.5 1.5 2.5-2.5"/></svg><span>Agenda personale</span></a>
+</nav>
+
 <div class="wrap">
   <header class="hd">
     <div class="hd-left">
