@@ -197,7 +197,20 @@ details > summary::-webkit-details-marker{display:none}
   .tablebox{overflow:visible}
   tr{break-inside:avoid}
   body.print-riep .sh-detail{display:none!important}
+  .sh-detail .det-body,.sh-detail .det-body[hidden]{display:flex!important}
+  .chk-col,.det-tools,.det-sel,.det-undo{display:none!important}
 }
+.det-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.det-body{display:flex;flex-direction:column;gap:10px}
+.det-body[hidden]{display:none!important}
+.chk-col{width:34px;text-align:center!important}
+.chk-col input{width:18px;height:18px;cursor:pointer;accent-color:var(--danger)}
+tr.det-off td{opacity:.45;text-decoration:line-through}
+tr.det-off td.chk-col{opacity:1;text-decoration:none}
+.det-sel,.det-undo{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;border-radius:10px;border:1px solid var(--danger);background:var(--danger-soft)}
+.det-undo{border-color:var(--line);background:transparent}
+.det-sel b{font-variant-numeric:tabular-nums}
+.det-sel .grow,.det-undo .grow{flex:1;min-width:180px}
 </style>
 </head>
 <body>
@@ -1221,6 +1234,38 @@ $("copySeduta").addEventListener("click",()=>{
   s+=`\nIncassato: ${eur(T.p)}\nBolli: ${eur(T.b)}\nAL MEDICO: ${eur(T.m)}\nALLO STUDIO: ${eur(T.s)}`;copyText(s)});
 
 /* ---------- mese ---------- */
+const DET={open:false,sel:new Set(),last:null,lastT:0};
+function gruppoDi(ids){const out=new Set(ids);S.voci.forEach(v=>{if(v.gruppo&&S.voci.some(x=>ids.has(x.id)&&x.gruppo===v.gruppo))out.add(v.id)});return out}
+function detBar(voci,T){
+  const bar=$("detSel");if(bar){
+    const sel=voci.filter(v=>DET.sel.has(v.id));
+    if(!sel.length){bar.hidden=true;bar.innerHTML=""}
+    else{const R=sum(voci.filter(v=>!DET.sel.has(v.id))),X=sum(sel),extra=gruppoDi(DET.sel).size-DET.sel.size;
+      bar.hidden=false;
+      bar.innerHTML=`<span class="grow">Selezionate <b>${sel.length}</b> (− ${eur(X.m)}). Nuovo compenso: <b>${eur(R.m)}</b> invece di ${eur(T.m)}${extra?` · verrà tolta anche la quota fissa collegata (${extra})`:""}</span>
+        <button type="button" class="ghost" id="detClr">Annulla selezione</button>
+        <button type="button" class="danger" id="detDel">Elimina selezionate</button>`;}
+  }
+  const u=$("detUndo");if(u){
+    if(DET.last&&Date.now()-DET.lastT<20000){u.hidden=false;u.innerHTML=`<span class="grow">Eliminate ${DET.last.length} prestazioni. Totale ricalcolato.</span><button type="button" class="ghost" id="detUndoBtn">Annulla eliminazione</button>`;clearTimeout(DET._t);DET._t=setTimeout(()=>{u.hidden=true},20000-(Date.now()-DET.lastT))}
+    else{u.hidden=true;u.innerHTML=""}
+  }
+}
+$("prospetto").addEventListener("click",e=>{
+  if(e.target.closest("#detToggle")){DET.open=!DET.open;renderMese();return}
+  if(e.target.closest("#detClr")){DET.sel.clear();renderMese();return}
+  const del=e.target.closest("#detDel");
+  if(del){
+    if(!del.dataset.armed){del.dataset.armed="1";del.textContent="Conferma: elimina "+DET.sel.size;setTimeout(()=>{if(del.isConnected){del.dataset.armed="";del.textContent="Elimina selezionate"}},5000);return}
+    const ids=gruppoDi(DET.sel);const removed=S.voci.map((v,i)=>({v,i})).filter(o=>ids.has(o.v.id));
+    for(let k=removed.length-1;k>=0;k--)S.voci.splice(removed[k].i,1);
+    DET.last=removed;DET.lastT=Date.now();DET.sel.clear();save();renderMese();toast(removed.length+" prestazioni eliminate");if(typeof checkBackup==="function")checkBackup();return}
+  if(e.target.closest("#detUndoBtn")){if(!DET.last)return;DET.last.forEach(o=>S.voci.splice(Math.min(o.i,S.voci.length),0,o.v));DET.last=null;save();renderMese();toast("Eliminazione annullata");return}
+});
+$("prospetto").addEventListener("change",e=>{
+  if(e.target.id==="detAll"){const on=e.target.checked;vociMedico().forEach(v=>on?DET.sel.add(v.id):DET.sel.delete(v.id));renderMese();return}
+  const c=e.target.closest(".det-chk");if(!c)return;c.checked?DET.sel.add(c.dataset.id):DET.sel.delete(c.dataset.id);renderMese();
+});
 function fillMeseSelects(){
   const now=new Date();const anni=new Set([now.getFullYear()]);S.voci.forEach(v=>anni.add(Number(v.data.slice(0,4))));
   const curM=$("mMese").value||String(now.getMonth()+1),curA=$("mAnno").value||String(now.getFullYear());
@@ -1254,7 +1299,8 @@ function renderMese(){
       <div><span>Compenso prestazioni</span><span>${eur(T.m)}</span></div>
       <div class="tot"><span>Totale compenso del mese</span><span>${eur(TOT)}</span></div>
     </div>`:"";
-  const righe=voci.map(v=>{const c=calc(v.prezzo,v.perc,v.bollo);return`<tr><td class="l">${fmtDate(v.data)}</td><td class="l">${esc(v.prestazione)}</td><td class="num">${eur(c.p)}</td><td class="num hide-s">${eur(c.b)}</td><td class="num hide-s">${eur(c.n)}</td><td class="num">${v.perc}%</td><td class="num"><b>${eur(c.m)}</b></td></tr>`}).join("");
+  DET.sel=new Set([...DET.sel].filter(id=>voci.some(v=>v.id===id)));
+  const righe=voci.map(v=>{const c=calc(v.prezzo,v.perc,v.bollo);const on=DET.sel.has(v.id);return`<tr${on?' class="det-off"':''}><td class="chk-col"><input type="checkbox" class="det-chk" data-id="${v.id}"${on?" checked":""} aria-label="Seleziona ${esc(v.prestazione)} del ${fmtDate(v.data)}"></td><td class="l">${fmtDate(v.data)}</td><td class="l">${esc(v.prestazione)}</td><td class="num">${eur(c.p)}</td><td class="num hide-s">${eur(c.b)}</td><td class="num hide-s">${eur(c.n)}</td><td class="num">${v.perc}%</td><td class="num"><b>${eur(c.m)}</b></td></tr>`}).join("");
   const tipi=perTipo(voci).map(t=>`<tr><td class="l">${esc(t.nome)} (${t.perc}%)</td><td class="num">${t.n}</td><td class="num">${eur(t.p)}</td><td class="num"><b>${eur(t.m)}</b></td></tr>`).join("");
   $("prospetto").innerHTML=`
     <div class="sh-head">
@@ -1265,13 +1311,18 @@ function renderMese(){
     <div class="sh-total"><span>${OR.on?"Compenso totale del mese":"Importo da fatturare al centro"}</span><span class="num">${eur(TOT)}</span></div>
     ${voci.length?`
     <div class="sh-detail" style="display:flex;flex-direction:column;gap:14px">
-    <h3>Dettaglio prestazioni</h3>
+    <div class="det-head"><h3>Dettaglio prestazioni</h3><button type="button" class="ghost det-tools" id="detToggle" aria-expanded="${DET.open}" aria-controls="detBody">${DET.open?"Nascondi dettaglio":"Mostra dettaglio ("+voci.length+")"}</button></div>
+    <div class="det-body" id="detBody"${DET.open?"":" hidden"}>
+    <p class="note det-tools" style="margin:0">Spunta le prestazioni da togliere: vedi subito il nuovo totale, poi premi «Elimina selezionate».</p>
+    <div class="det-sel" id="detSel" hidden></div>
     <div class="tablebox"><table>
-      <thead><tr><th class="l">Data</th><th class="l">Prestazione</th><th>Prezzo</th><th class="hide-s">Bollo</th><th class="hide-s">Netto</th><th>%</th><th>Compenso</th></tr></thead>
+      <thead><tr><th class="chk-col"><input type="checkbox" id="detAll" aria-label="Seleziona tutte"${voci.length&&voci.every(v=>DET.sel.has(v.id))?" checked":""}></th><th class="l">Data</th><th class="l">Prestazione</th><th>Prezzo</th><th class="hide-s">Bollo</th><th class="hide-s">Netto</th><th>%</th><th>Compenso</th></tr></thead>
       <tbody>${righe}</tbody>
-      <tfoot><tr><td class="l" colspan="2">Totale (${T.k} prestazioni)</td><td class="num">${eur(T.p)}</td><td class="num hide-s">${eur(T.b)}</td><td class="num hide-s">${eur(T.n)}</td><td></td><td class="num">${eur(T.m)}</td></tr></tfoot>
+      <tfoot><tr><td class="chk-col"></td><td class="l" colspan="2">Totale (${T.k} prestazioni)</td><td class="num">${eur(T.p)}</td><td class="num hide-s">${eur(T.b)}</td><td class="num hide-s">${eur(T.n)}</td><td></td><td class="num">${eur(T.m)}</td></tr></tfoot>
     </table></div>
     </div>
+    </div>
+    <div class="det-undo" id="detUndo" hidden></div>
     <h3>Riepilogo per prestazione</h3>
     <div class="tablebox"><table>
       <thead><tr><th class="l">Prestazione</th><th>N.</th><th>Incassato</th><th>Compenso</th></tr></thead>
@@ -1286,6 +1337,7 @@ function renderMese(){
     </div>
     ${oreHtml}<div class="sh-foot"><span>Emesso il ${new Date().toLocaleDateString("it-IT")}</span><span class="sign">Firma per il centro</span></div>`
     :(oreHtml||`<p class="empty">Nessuna prestazione registrata per questo medico in ${P.label}.</p>`)}`;
+  detBar(voci,T);
   // riepilogo centro
   const all=vociMese();const ids=[...new Set([...S.medici.map(m=>m.id),...assOrari().map(a=>a.id),...all.map(v=>v.medicoId)])];
   const tb=$("mRows");tb.innerHTML="";
