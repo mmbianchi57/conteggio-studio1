@@ -1833,5 +1833,32 @@ let startTab="seduta";try{startTab=sessionStorage.getItem(KEY+"-tab")||"seduta"}
 showTab(startTab);
 initFile();initBackupDir();
 </script>
+<script>
+/* Numerino rosso sul tasto «Agenda personale»: note in scadenza oggi/domani o scadute */
+(function(){
+  function pad(n){return String(n).padStart(2,"0");}
+  function ymd(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+  function run(){
+    var notes=[]; try{ notes=JSON.parse(localStorage.getItem("visio-note-v1")||"[]")||[]; }catch(e){}
+    var t=new Date(), oggi=ymd(t), dom=ymd(new Date(t.getFullYear(),t.getMonth(),t.getDate()+1));
+    var due=notes.filter(function(n){return !n.fatta&&n.scadenza&&n.scadenza<=dom;});
+    var late=due.filter(function(n){return n.scadenza<oggi;}).length;
+    document.querySelectorAll(".sj-ap, a.btn.warm").forEach(function(b){
+      var x=b.querySelector(".vb-badge");
+      if(!due.length){ if(x) x.remove(); b.removeAttribute("data-scad"); return; }
+      if(!x){ x=document.createElement("span"); x.className="vb-badge"; b.appendChild(x); }
+      x.textContent=due.length;
+      var msg=due.length+(due.length===1?" nota":" note")+" in scadenza"+(late?" ("+late+" già scadut"+(late===1?"a":"e")+")":" oggi o domani");
+      b.setAttribute("title",msg); x.setAttribute("aria-label",msg);
+    });
+  }
+  var st=document.createElement("style");
+  st.textContent=".sj-ap,a.btn.warm{position:relative}.vb-badge{position:absolute;top:-7px;right:-7px;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:#D9543F;color:#fff;font:700 .75rem/22px system-ui,'Segoe UI',sans-serif;text-align:center;box-shadow:0 0 0 2px #0F1F17,1px 2px 4px rgba(0,0,0,.5)}@media print{.vb-badge{display:none}}";
+  (document.head||document.documentElement).appendChild(st);
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",run); else run();
+  addEventListener("storage",function(e){ if(e.key==="visio-note-v1") run(); });
+  setInterval(run,60000);
+})();
+</script>
 </body>
 </html>
